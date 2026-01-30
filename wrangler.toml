@@ -1,18 +1,13 @@
+# Cloudflare Pages configuration for Vite React + TypeScript app
 name = "artwork-viewer"
-type = "javascript"
-account_id = ""
-workers_dev = true
-route = ""
-zone_id = ""
+compatibility_date = "2026-01-30"
 
 [build]
 command = "npm run build"
 cwd = "."
-main = "dist/index.html"
 
-[build.upload]
-format = "modules"
-dir = "dist"
+[assets]
+directory = "dist"
 
 [env.production]
 vars = { ENVIRONMENT = "production" }

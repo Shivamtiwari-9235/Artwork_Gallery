@@ -9,6 +9,7 @@ import { Toolbar } from 'primereact/toolbar';
 import { fetchArtworks } from '../services/artworkService';
 import type { Artwork, ApiResponse } from '../types';
 import { CustomRowSelection } from './CustomRowSelection';
+import { mockArtworks } from '../data/mockArtworks';
 import './ArtworkDataTable.css';
 
 /**
@@ -31,6 +32,8 @@ export const ArtworkDataTable: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   // Total pages available
   const [totalPages, setTotalPages] = useState(0);
+  // Toggle between API and mock data
+  const [useMockData, setUseMockData] = useState(false);
 
   // ========== STATE: Selection Tracking ==========
   // IDs of rows user selected (persists across pages)
@@ -61,6 +64,17 @@ export const ArtworkDataTable: React.FC = () => {
 
   // ========== EFFECTS ==========
   /**
+   * Effect: Fetch artworks when data source toggles
+   * 
+   * Dependencies: [useMockData]
+   * This resets to page 1 when switching between API and mock data
+   */
+  useEffect(() => {
+    setCurrentPage(1);
+    loadArtworks(1);
+  }, [useMockData]);
+
+  /**
    * Effect: Fetch artworks when page changes
    * 
    * Dependencies: [currentPage]
@@ -72,11 +86,11 @@ export const ArtworkDataTable: React.FC = () => {
 
   // ========== DATA LOADING FUNCTIONS ==========
   /**
-   * Loads artwork data from API for given page
+   * Loads artwork data from API or mock data for given page
    * 
    * Steps:
    * 1. Show loading spinner
-   * 2. Fetch from API
+   * 2. Fetch from API or use mock data
    * 3. Update state
    * 4. Handle errors with toast
    * 5. Hide spinner
@@ -84,9 +98,18 @@ export const ArtworkDataTable: React.FC = () => {
   const loadArtworks = async (page: number) => {
     setLoading(true);
     try {
-      const data: ApiResponse = await fetchArtworks(page);
-      setArtworks(data.data);
-      setTotalPages(data.pagination.total_pages);
+      if (useMockData) {
+        // Use mock data: 12 rows per page from 80 total
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        setArtworks(mockArtworks.slice(start, end));
+        setTotalPages(Math.ceil(mockArtworks.length / rowsPerPage));
+      } else {
+        // Use real API
+        const data: ApiResponse = await fetchArtworks(page);
+        setArtworks(data.data);
+        setTotalPages(data.pagination.total_pages);
+      }
     } catch (error) {
       console.error('Failed to load artworks:', error);
       toastRef.current?.show({
@@ -270,10 +293,17 @@ export const ArtworkDataTable: React.FC = () => {
   );
 
   /**
-   * Renders right side of toolbar (action buttons)
+   * Renders right side of toolbar (action buttons and data source toggle)
    */
   const toolbarRightContent = () => (
     <div className="toolbar-section">
+      <Button
+        label={useMockData ? "📊 Mock Data (80)" : "🌐 Live API"}
+        icon={useMockData ? "pi pi-database" : "pi pi-cloud"}
+        onClick={() => setUseMockData(!useMockData)}
+        className={useMockData ? "p-button-success" : "p-button-info"}
+        size="small"
+      />
       <Button
         label="Select All"
         icon="pi pi-check-square"
@@ -383,12 +413,15 @@ export const ArtworkDataTable: React.FC = () => {
             className="artist-column"
           />
 
-          {/* Inscriptions */}
+          {/* Inscriptions - Show "NA" if empty */}
           <Column
             field="inscriptions"
             header="Inscriptions"
             style={{ minWidth: '150px' }}
             className="inscriptions-column"
+            body={(rowData: Artwork) => (
+              <span>{rowData.inscriptions && rowData.inscriptions !== '' ? rowData.inscriptions : 'NA'}</span>
+            )}
           />
 
           {/* Start Date */}

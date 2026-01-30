@@ -1,4 +1,3 @@
-import React from 'react'
 // Import PrimeReact theme and styles
 import { ArtworkDataTable } from './components/ArtworkDataTable'
 import 'primereact/resources/themes/lara-light-blue/theme.css'

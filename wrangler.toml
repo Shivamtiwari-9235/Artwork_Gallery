@@ -1,5 +1,18 @@
-{
-  "buildCommand": "npm run build",
-  "buildOutputDirectory": "dist",
-  "nodeVersion": "18"
-}
+name = "artwork-viewer"
+type = "javascript"
+account_id = ""
+workers_dev = true
+route = ""
+zone_id = ""
+
+[build]
+command = "npm run build"
+cwd = "."
+main = "dist/index.html"
+
+[build.upload]
+format = "modules"
+dir = "dist"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
